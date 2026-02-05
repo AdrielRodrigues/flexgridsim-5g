@@ -5,7 +5,7 @@
 
     <trace file="trace.tr"></trace>
 
-	<traffic calls="3000" load="215" max-rate="1000">
+	<traffic calls="10000" load="215" max-rate="1000">
 	  	<calls holding-time="1.0" rate="50" cos="0" weight="1"/>
 	  	<calls holding-time="1.0" rate="80" cos="0" weight="1"/>
         <calls holding-time="1.0" rate="240" cos="1" weight="1"/>
@@ -530,19 +530,31 @@
     </physical-topology>
 
     <graphs>
-    <graph name="fragmentation" dots-file="nomod-eon-fifthgen-fragmentation.dat"/>
-    <graph name="modulation" dots-file="nomod-eon-fifthgen-modulation.dat"/>
-    <graph name="mbbr" dots-file="nomod-eon-fifthgen-mbbr.dat"/>
-    <graph name="hops" dots-file="nomod-eon-fifthgen-hops.dat"/>
-    <graph name="hopsback" dots-file="nomod-eon-fifthgen-hopsback.dat"/>
-    <graph name="jfi" dots-file="nomod-eon-fifthgen-jfi.dat"/>
-    <graph name="xtps" dots-file="nomod-eon-fifthgen-xtps.dat"/>
-    <graph name="data" dots-file="nomod-eon-fifthgen-data.dat"/>
-    <graph name="ee" dots-file="nomod-eon-fifthgen-ee.dat"/>
-    <graph name="pc" dots-file="nomod-eon-fifthgen-pc.dat"/>
-    <graph name="avgbps" dots-file="nomod-eon-fifthgen-avgbps.dat"/>
-    <graph name="dcblock" dots-file="nomod-eon-fifthgen-dcblock.dat"/>
-    <graph name="regularblock" dots-file="nomod-eon-fifthgen-regularblock.dat"/>
-    <graph name="interblock" dots-file="nomod-eon-fifthgen-interblock.dat"/>
+	    <graph name="fragmentation" dots-file="nomod-eon-fifthgen-fragmentation.dat"/>
+	    <graph name="modulation" dots-file="nomod-eon-fifthgen-modulation.dat"/>
+	    <graph name="mbbr" dots-file="nomod-eon-fifthgen-mbbr.dat"/>
+	    <graph name="hops" dots-file="nomod-eon-fifthgen-hops.dat"/>
+	    <graph name="hopsback" dots-file="nomod-eon-fifthgen-hopsback.dat"/>
+	    <graph name="jfi" dots-file="nomod-eon-fifthgen-jfi.dat"/>
+	    <graph name="xtps" dots-file="nomod-eon-fifthgen-xtps.dat"/>
+	    <graph name="data" dots-file="nomod-eon-fifthgen-data.dat"/>
+	    <graph name="ee" dots-file="nomod-eon-fifthgen-ee.dat"/>
+	    <graph name="pc" dots-file="nomod-eon-fifthgen-pc.dat"/>
+	    <graph name="avgbps" dots-file="nomod-eon-fifthgen-avgbps.dat"/>
+	    <graph name="dcblock" dots-file="nomod-eon-fifthgen-dcblock.dat"/>
+	    <graph name="regularblock" dots-file="nomod-eon-fifthgen-regularblock.dat"/>
+	    <graph name="interblock" dots-file="nomod-eon-fifthgen-interblock.dat"/>
+	    
+	    <graph name="urllc" dots-file="nomod-eon-fifthgen-urllc.dat"/>
+	    <graph name="embb" dots-file="nomod-eon-fifthgen-embb.dat"/>
+	    <graph name="mmtc" dots-file="nomod-eon-fifthgen-mmtc.dat"/>
+	    
+	    <graph name="proportional_urllc" dots-file="nomod-eon-fifthgen-pro-urllc.dat"/>
+	    <graph name="proportional_embb" dots-file="nomod-eon-fifthgen-pro-embb.dat"/>
+	    <graph name="proportional_mmtc" dots-file="nomod-eon-fifthgen-pro-mmtc.dat"/>
+	    
+	    <graph name="mbbr-urllc" dots-file="nomod-eon-fifthgen-mbbrurllc.dat"/>
+	    <graph name="mbbr-embb" dots-file="nomod-eon-fifthgen-mbbrembb.dat"/>
+	    <graph name="mbbr-mmtc" dots-file="nomod-eon-fifthgen-mbbrmmtc.dat"/>
     </graphs>	
 </flexgridsim>

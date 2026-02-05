@@ -69,7 +69,7 @@ public class FifthGen implements RSA  {
 		int modulation=0;
 		do{
 			// Demand may be different
-			demandInSlots = (int) Math.ceil(flow.getRate() / (double) Modulations.getBandwidth(mod)) + guardBand;
+			demandInSlots = (int) Math.ceil(flow.getRate()/1000.0 / (double) Modulations.getBandwidth(mod)) + guardBand;
 			
 			if (cos == 0) {
 				path = findFog(flow, cos, demandInSlots);
@@ -144,16 +144,26 @@ public class FifthGen implements RSA  {
 	
 	private Path findFog(Flow flow, int cos, int demandInSlots) {
 		Path tempPath;
+		
+		for (int cloud : this.cos) {
+			tempPath = getKShortestPath(graph, flow.getSource(), cloud, cos, demandInSlots, false);
+			if (tempPath == null) {
+				continue;
+			}
+			int delay = 5 * getPhysicalDistance(tempPath.getLinks());
+			
+			if (delay <= 50)
+				return tempPath;
+		}
+		
 		for (int fogNode : this.fogs) {
 			tempPath = getKShortestPath(graph, flow.getSource(), fogNode, cos, demandInSlots, false);
 			if (tempPath == null)
 				continue;
 			int delay = 5 * getPhysicalDistance(tempPath.getLinks());
-			if ((cos == 1) && (delay <= 100)) {
+			
+			if (delay <= 50)
 				return tempPath;
-			} else if ((cos == 2) && (delay <= 250)) {
-				return tempPath;
-			}
 		}
 		return null;
 	}
@@ -168,23 +178,17 @@ public class FifthGen implements RSA  {
 			}
 			int delay = 5 * getPhysicalDistance(tempPath.getLinks());
 			
-			if ((cos == 1) && (delay <= 100)) {
+			if (delay <= 50) {
 				if (!this.fogs.contains(i)) {
 					this.fogs.add(i);
+					return tempPath;
 				}
-				return tempPath;
-			} else if ((cos == 2) && (delay <= 250)) {
-				if (!this.fogs.contains(i)) {
-					this.fogs.add(i);
-				}
-				return tempPath;
 			}
 		}
 		return null;
 	}
 	
-//	Still working as the default, but intended to treat differentially each kind of connection
-	private void managementDC (Flow flow, Path path, int modulation, long id) {
+private void managementNode (Flow flow, Path path, int modulation, long id) {
 		id = vt.createLightpath(path, modulation);
 		ArrayList<LightPath> lightpath = new ArrayList<LightPath>();
 			
@@ -203,58 +207,13 @@ public class FifthGen implements RSA  {
 			vt.removeLightPath(id);
 			cp.blockFlow(flow.getID());
 			return;
-		}	
+		}
 		return;
 	}
-	private void managementNode (Flow flow, Path path, int modulation, long id) {
-		id = vt.createLightpath(path, modulation);
-		ArrayList<LightPath> lightpath = new ArrayList<LightPath>();
-			
-		if (id >= 0) {
-			flow.setLinks(path.getLinks());
-			flow.setSlotList(path.getSlotList());
-			flow.setModulationLevel(modulation);
-			lightpath.add(vt.getLightpath(id));
-		}
-		if(id<0){
-			cp.blockFlow(flow.getID());
-			return;
-		}
-			
-		if(!cp.acceptFlow(flow.getID(), lightpath)) {
-			vt.removeLightPath(id);
-			cp.blockFlow(flow.getID());
-			return;
-		}	
-		return;
-	}
-	private void managementDN (Flow flow, Path path, int modulation, long id) {
-		id = vt.createLightpath(path, modulation);
-		ArrayList<LightPath> lightpath = new ArrayList<LightPath>();
-			
-		if (id >= 0) {
-			flow.setLinks(path.getLinks());
-			flow.setSlotList(path.getSlotList());
-			flow.setModulationLevel(modulation);
-			lightpath.add(vt.getLightpath(id));
-		}
-		if(id<0){
-			cp.blockFlow(flow.getID());
-			return;
-		}
-			
-		if(!cp.acceptFlow(flow.getID(), lightpath)) {
-			vt.removeLightPath(id);
-			cp.blockFlow(flow.getID());
-			return;
-		}	
-		return;
-	}
-
 	public int getPhysicalDistance(int[] links){
 		if(links!=null&& links.length>0){
 			int physicalDistance = 0;
-			for (int i = 0; i < links.length - 1; i++) {
+			for (int i = 0; i < links.length; i++) {
 				physicalDistance += pt.getLink(links[i]).getDistance();
 			}
 			return physicalDistance;

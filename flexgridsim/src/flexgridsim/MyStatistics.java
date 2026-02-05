@@ -51,7 +51,7 @@ public class MyStatistics {
     
     // NEW TRAFFIC DIFF
     private int counter_regular, counter_dc, counter_inter, fail_regular, fail_dc, fail_inter;
-    
+    private int urllc, embb, mmtc, blk_urllc, blk_embb, blk_mmtc;
     
     /**
      * A private constructor that prevents any other class from instantiating.
@@ -75,6 +75,13 @@ public class MyStatistics {
         this.fail_regular = 0;
         this.fail_dc = 0;
         this.fail_inter = 0;
+        
+        urllc = 0;
+        embb = 0;
+        mmtc = 0;
+        blk_urllc = 0;
+        blk_embb = 0;
+        blk_mmtc = 0;
     }
     
     public int getblocked() {
@@ -161,9 +168,22 @@ public class MyStatistics {
 		plotter.addDotToGraph("mbbr", load, ((float) blockedBandwidth) / ((float) requiredBandwidth));
 		plotter.addDotToGraph("bp", load, ((float) blocked) / ((float) arrivals) * 100);
 		
+		plotter.addDotToGraph("mbbr-urllc", load, ((float) blockedBandwidthDiff[0]) / ((float) requiredBandwidthDiff[0]));
+		plotter.addDotToGraph("mbbr-embb", load, ((float) blockedBandwidthDiff[1]) / ((float) requiredBandwidthDiff[1]));
+		plotter.addDotToGraph("mbbr-mmtc", load, ((float) blockedBandwidthDiff[2]) / ((float) requiredBandwidthDiff[2]));
+		
 		plotter.addDotToGraph("dcblock", load, ((float) this.fail_dc) / ((float) this.counter_dc) * 100);
 		plotter.addDotToGraph("regularblock", load, ((float) this.fail_regular) / ((float) this.counter_regular) * 100);
 		plotter.addDotToGraph("interblock", load, ((float) this.fail_inter) / ((float) this.counter_inter) * 100);
+		
+		plotter.addDotToGraph("urllc", load, ((float) this.blk_urllc) / ((float) this.blocked) * 100);
+		plotter.addDotToGraph("embb", load, ((float) this.blk_embb) / ((float) this.blocked) * 100);
+		plotter.addDotToGraph("mmtc", load, ((float) this.blk_mmtc) / ((float) this.blocked) * 100);
+		System.out.println("Blocked URLLC " + this.blk_urllc + "\nBlocked eMBB " + this.blk_embb + "\nBlocked mMTC " + this.blk_mmtc);
+		
+		plotter.addDotToGraph("proportional_urllc", load, ((float) this.blk_urllc) / ((float) this.urllc) * 100);
+		plotter.addDotToGraph("proportional_embb", load, ((float) this.blk_embb) / ((float) this.embb) * 100);
+		plotter.addDotToGraph("proportional_mmtc", load, ((float) this.blk_mmtc) / ((float) this.mmtc) * 100);
 		
 		int count = 0;
         float bbr, jfi, sum1 = 0, sum2 = 0;
@@ -345,11 +365,26 @@ public class MyStatistics {
             switch (flow.getConnectionType()) {
 	    		case 0:		// Node to Node
 	    			this.counter_regular += 1;
+	    			break;
 	    		case 1:		// DC to DC
-	    			this.counter_dc += 1;	    			
+	    			this.counter_dc += 1;
+	    			break;
 	    		case 2:		// Node to DC
 	    			this.counter_inter += 1;
+	    			break;
     		}
+            
+            switch (flow.getCOS()) {
+            	case 0:
+            		urllc += 1;
+            		break;
+            	case 1:
+            		embb += 1;
+            		break;
+            	case 2:
+            		mmtc += 1;
+            		break;
+            }
 
             
             numberOfUsedTransponders[flow.getSource()][flow.getDestination()]++;
@@ -387,11 +422,26 @@ public class MyStatistics {
             switch (flow.getConnectionType()) {
 				case 0:		// Node to Node
 					this.fail_regular += 1;
+					break;
 				case 1:		// DC to DC
-					this.fail_dc += 1;	    			
+					this.fail_dc += 1;
+					break;
 				case 2:		// Node to DC
 					this.fail_inter += 1;
-		}
+					break;
+            }
+            
+            switch (flow.getCOS()) {
+	        	case 0:
+	        		blk_urllc += 1;
+	        		break;
+	        	case 1:
+	        		blk_embb += 1;
+	        		break;
+	        	case 2:
+	        		blk_mmtc += 1;
+	        		break;
+	        }
         }
     }
     

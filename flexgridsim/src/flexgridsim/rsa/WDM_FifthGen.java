@@ -32,15 +32,14 @@ public class WDM_FifthGen implements RSA  {
 	
 	// Active Nodes
 	private int mainCO;
-	private ArrayList<Integer> cos = new ArrayList<>();
+	private ArrayList<Integer> clouds = new ArrayList<>();
 	private ArrayList<Integer> fogs = new ArrayList<>();
 	
-	Random random = new Random();
-
+	private Random random = new Random();
 
 	@Override
 	public void flowDeparture(Flow flow) {
-		// TODO Auto-generated method stub
+		// TODO Cria um novo fluxo pós processamento
 	}
 
 	@Override
@@ -52,7 +51,7 @@ public class WDM_FifthGen implements RSA  {
 		this.graph = pt.getWeightedGraph();
 		
 		mainCO = random.nextInt(20) + 80;
-		cos.add(mainCO);
+		clouds.add(mainCO);
 	}
 
 	@Override
@@ -66,7 +65,7 @@ public class WDM_FifthGen implements RSA  {
 		Path path = null;
 		
 		int mod = 0;
-		demandInSlots = (int) Math.ceil(flow.getRate() / (double) Modulations.getBandwidth(mod)) + guardBand;
+		demandInSlots = (int) Math.ceil((flow.getRate()/1000.0) / (double) Modulations.getBandwidth(mod)) + guardBand;
 		
 		int cos = flow.getCOS();
 		
@@ -87,9 +86,9 @@ public class WDM_FifthGen implements RSA  {
 		managementNode(flow, path, mod, id);
 	}
 	
-	private Path findCloud(Flow flow, int cos, int demandInSlots) {
+	public Path findCloud(Flow flow, int cos, int demandInSlots) {
 		Path tempPath;
-		for (int cloud : this.cos) {
+		for (int cloud : this.clouds) {
 			tempPath = getKShortestPath(graph, flow.getSource(), cloud, cos, demandInSlots, false);
 			if (tempPath == null) {
 				continue;
@@ -105,7 +104,7 @@ public class WDM_FifthGen implements RSA  {
 		return null;
 	}
 	
-	private Path upCloud(Flow flow, int cos, int demandInSlots) {
+	public Path upCloud(Flow flow, int cos, int demandInSlots) {
 		Path tempPath;
 		// Core Nodes
 		for (int i = 80; i < 100; i++) {
@@ -116,13 +115,13 @@ public class WDM_FifthGen implements RSA  {
 			int delay = 5 * getPhysicalDistance(tempPath.getLinks());
 			
 			if ((cos == 1) && (delay <= 100)) {
-				if (!this.cos.contains(i)) {
-					this.cos.add(i);
+				if (!this.clouds.contains(i)) {
+					this.clouds.add(i);
 				}
 				return tempPath;
 			} else if ((cos == 2) && (delay <= 250)) {
-				if (!this.cos.contains(i)) {
-					this.cos.add(i);
+				if (!this.clouds.contains(i)) {
+					this.clouds.add(i);
 				}
 				return tempPath;
 			}
@@ -130,23 +129,21 @@ public class WDM_FifthGen implements RSA  {
 		return null;
 	}
 	
-	private Path findFog(Flow flow, int cos, int demandInSlots) {
+	public Path findFog(Flow flow, int cos, int demandInSlots) {
 		Path tempPath;
 		for (int fogNode : this.fogs) {
 			tempPath = getKShortestPath(graph, flow.getSource(), fogNode, cos, demandInSlots, false);
 			if (tempPath == null)
 				continue;
 			int delay = 5 * getPhysicalDistance(tempPath.getLinks());
-			if ((cos == 1) && (delay <= 100)) {
+			
+			if (delay <= 50) 
 				return tempPath;
-			} else if ((cos == 2) && (delay <= 250)) {
-				return tempPath;
-			}
 		}
 		return null;
 	}
 	
-	private Path upFog(Flow flow, int cos, int demandInSlots) {
+	public Path upFog(Flow flow, int cos, int demandInSlots) {
 		Path tempPath;
 		// Core Nodes
 		for (int i = 50; i < 80; i++) {
@@ -156,68 +153,18 @@ public class WDM_FifthGen implements RSA  {
 			}
 			int delay = 5 * getPhysicalDistance(tempPath.getLinks());
 			
-			if ((cos == 1) && (delay <= 100)) {
+			if (delay <= 50) {
 				if (!this.fogs.contains(i)) {
 					this.fogs.add(i);
+					return tempPath;
 				}
-				return tempPath;
-			} else if ((cos == 2) && (delay <= 250)) {
-				if (!this.fogs.contains(i)) {
-					this.fogs.add(i);
-				}
-				return tempPath;
 			}
 		}
 		return null;
 	}
 	
 	
-//	Still working as the default, but intended to treat differentially each kind of connection
-	private void managementDC (Flow flow, Path path, int modulation, long id) {
-		id = vt.createLightpath(path, modulation);
-		ArrayList<LightPath> lightpath = new ArrayList<LightPath>();
-			
-		if (id >= 0) {
-			flow.setLinks(path.getLinks());
-			flow.setSlotList(path.getSlotList());
-			flow.setModulationLevel(modulation);
-			lightpath.add(vt.getLightpath(id));
-		}
-		if(id<0){
-			cp.blockFlow(flow.getID());
-			return;
-		}
-			
-		if(!cp.acceptFlow(flow.getID(), lightpath)) {
-			vt.removeLightPath(id);
-			cp.blockFlow(flow.getID());
-			return;
-		}	
-		return;
-	}
-	private void managementNode (Flow flow, Path path, int modulation, long id) {
-		id = vt.createLightpath(path, modulation);
-		ArrayList<LightPath> lightpath = new ArrayList<LightPath>();
-			
-		if (id >= 0) {
-			flow.setLinks(path.getLinks());
-			flow.setSlotList(path.getSlotList());
-			flow.setModulationLevel(modulation);
-			lightpath.add(vt.getLightpath(id));
-		}
-		if(id<0){
-			cp.blockFlow(flow.getID());
-			return;
-		}
-			
-		if(!cp.acceptFlow(flow.getID(), lightpath)) {
-			vt.removeLightPath(id);
-			cp.blockFlow(flow.getID());
-			return;
-		}	
-		return;
-	}
-	private void managementDN (Flow flow, Path path, int modulation, long id) {
+	public void managementNode (Flow flow, Path path, int modulation, long id) {
 		id = vt.createLightpath(path, modulation);
 		ArrayList<LightPath> lightpath = new ArrayList<LightPath>();
 			
@@ -243,166 +190,13 @@ public class WDM_FifthGen implements RSA  {
 	public int getPhysicalDistance(int[] links){
 		if(links!=null&& links.length>0){
 			int physicalDistance = 0;
-			for (int i = 0; i < links.length - 1; i++) {
+			for (int i = 0; i < links.length; i++) {
 				physicalDistance += pt.getLink(links[i]).getDistance();
 			}
 			return physicalDistance;
 		}
 		else
 			return -1;
-	}
-
-	public  boolean disjoint(ArrayList<LightPath> lightpaths, int[] linkpath) {
-		if(lightpaths!=null&& linkpath!=null && linkpath.length!=0){
-			for (LightPath lightpath : lightpaths){
-				for(int i = 0; i < lightpath.getLinks().length; i++){  
-					for(int j = 0; j < linkpath.length; j++){  
-						if( lightpath.getLinks()[i]==linkpath[j])
-								return false;	
-					}
-				}
-			}
-		}		
-		return true;
-	}
-	/**
-	 * Finds, from the list of unvisited vertexes, the one with the lowest
-	 * distance from the initial node.
-	 * 
-	 * @param dist
-	 *            vector with shortest known distance from the initial node
-	 * @param v
-	 *            vector indicating the visited nodes
-	 * @return vertex with minimum distance from initial node, or -1 if the
-	 *         graph is unconnected or if no vertexes were visited yet
-	 */
-	public int minVertex(double[] dist, boolean[] v) {
-		double x = Double.MAX_VALUE;
-		int y = -1; // graph not connected, or no unvisited vertices
-		for (int i = 0; i < dist.length; i++) {
-			if (!v[i] && dist[i] < x) {
-				y = i;
-				x = dist[i];
-			}
-		}
-		return y;
-	}
-
-	// Dijkstra's algorithm to find shortest path from s to all other nodes
-		/**
-		 * Msp.
-		 *
-		 * @param G the g
-		 * @param s the s
-		 * @param demand the demand
-		 * @param protection true if is to protect false otherwise
-		 * @return the int[]
-		 */
-		
-	public int[] MSP(WeightedGraph G, int s, int demand) {
-		final double[] dist = new double[G.size()]; // shortest known distance
-													// from "s"
-		final int[] pred = new int[G.size()]; // preceding node in path
-		final boolean[] visited = new boolean[G.size()]; // all false initially
-		for (int i = 0; i < dist.length; i++) {
-			pred[i] = -1;
-			dist[i] = 1000000;
-		}
-	
-		dist[s] = 0;
-		for (int i = 0; i < dist.length; i++) {
-			final int next = minVertex(dist, visited);
-			if (next >= 0) {
-				visited[next] = true;
-	
-				// The shortest path to next is dist[next] and via pred[next].
-				final int[] n = G.neighbors(next);
-				for (int j = 0; j < n.length; j++) {
-					final int v = n[j];
-					final double d = dist[next] + G.getWeight(next, v);
-					if (dist[v] > d) {
-						dist[v] = d;
-						pred[v] = next;
-					}					
-				}
-			}
-		}
-		return pred;
-	}
-
-	/**
-	 * Retrieves the shortest path between a source and a destination node,
-	 * within a weighted graph.
-	 * 
-	 * @param G
-	 *            the weighted graph in which the shortest path will be found
-	 * @param src
-	 *            the source node
-	 * @param dst
-	 *            the destination node
-	 * @param demand
-	 *            size of the demand
-	 * @return the shortest path, as a vector of integers that represent node
-	 *         coordinates
-	 */
-	public ArrayList<Integer> getShortestPath(WeightedGraph G, int src, int dst, int demand) {
-		int x;
-		ArrayList<Integer> path = new ArrayList<Integer>();
-		final int[] pred = MSP(G, src, demand);
-		if (pred == null) {
-			return null;
-		}
-		x = dst;
-	
-		while (x != src) {
-			path.add(0, x);
-			x = pred[x];
-			// No path
-			if (x == -1) {
-				return null;
-			}				
-		}
-		path.add(0, src);
-		
-		return path;
-	}
-
-	public Path getShortestPath(MultiGraph multigraph, int src, int dst, int demand) {
-		int links[];
-		int nowSlot=-1;
-		int nowCore=-1;;
-		ArrayList<Integer> path = new ArrayList<Integer>();
-		ArrayList<Slot> channel = new ArrayList<Slot>();
-		for (int j = 0; j < multigraph.getNumMultiedges();j++) {	//Num cores
-			for (int i = 0; i < multigraph.getNumEdges(); i++) {	//Num slots left
-				ArrayList<Integer> nowpath = new ArrayList<Integer>();
-				nowpath=getShortestPath(multigraph.getGraph(i,j),src,dst, demand);
-				if(nowpath==null||nowpath.size()<2){
-					continue;
-				}else{
-					if(nowpath.size()<path.size()||path.isEmpty()){
-						path=nowpath;
-						nowSlot=i;
-						nowCore =j;
-					}
-				}
-				
-			}
-		}
-		if(path.size()<2){
-			return null;
-		}
-		links = new int[path.size() - 1];
-
-		for (int j = 0; j < path.size() - 1; j++) {
-			links[j] = pt.getLink(path.get(j), path.get(j + 1)).getID();
-		}
-		for (int l = 0; l < links.length; l++) {
-			for (int j = nowSlot; j < nowSlot+demand; j++) {
-				channel.add(new Slot(nowCore, j, links[l] ));
-			}
-		}
-		return new Path(links, channel);
 	}
 
 	public Path getKShortestPath(WeightedGraph G,int src, int dst, int cos, int demand, boolean overlap){
@@ -446,9 +240,9 @@ public class WDM_FifthGen implements RSA  {
 			regionFinish = pt.getNumSlots() / 4;
 		} else if (cos == 1) {
 			regionStart = pt.getNumSlots() / 4;
-			regionFinish = 2 * (pt.getNumSlots()/4);
+			regionFinish = 3 * (pt.getNumSlots()/4);
 		} else if (cos == 2) {
-			regionStart = 2 * (pt.getNumSlots()/4);
+			regionStart = 3 * (pt.getNumSlots()/4);
 			regionFinish = pt.getNumSlots();
 		}
 		
@@ -471,53 +265,6 @@ public class WDM_FifthGen implements RSA  {
 	}
 	
 	
-	
-	public Path getKShortestPath(WeightedGraph G,int src, int dst, int demand, boolean overlap){
-		KShortestPaths kShortestPaths = new KShortestPaths();
-		int[][] kPaths = kShortestPaths.dijkstraKShortestPaths(G, src, dst, 3);
-		if(kPaths==null)
-			return null;
-		int []links;
-		ArrayList<Slot> channel = new ArrayList<Slot>();
-		
-		for (int i = 0; i < kPaths.length; i++) {
-			if (kPaths[i].length > 1){
-				links = new int[kPaths[i].length - 1];
-				for (int j = 0; j < kPaths[i].length - 1; j++) {
-					links[j] = pt.getLink(kPaths[i][j], kPaths[i][j + 1]).getID();
-				}
-				channel=getSimilarSlotsInLinks(links,overlap, demand);
-				if(channel!=null){
-					return new Path(links, channel);
-				}	
-			} else {
-				continue;
-			}
-		}
-		return null;
-	}
-	public  ArrayList<Slot> getSimilarSlotsInLinks(int []links, boolean sharing, int demandInSlots) {
-		ArrayList<Slot> channel = new ArrayList<Slot>();
-		int firstSlot;
-		int lastSlot;
-		int core;
-		for (int i = 0; i < pt.getNumSlots()-demandInSlots; i++) {
-			firstSlot = i;
-			lastSlot = i + demandInSlots - 1;
-			core=usingSameCore(firstSlot, lastSlot, links, sharing);
-		
-			if(core!=-1){
-				for (int j = firstSlot; j <= lastSlot; j++) {
-					for (int l = 0; l < links.length; l++) {
-						channel.add(new Slot(core, j, links[l] ));
-					}
-				}
-				return channel;	
-			}//else{@todo}
-	
-		}	
-		return null;
-	}
 	public int usingSameCore(int firstSlot, int lastSlot, int links[], boolean sharing){
 		for (int core=0; core < pt.getNumCores(); core ++){
 			if(freeSlotInAllLinks(links, firstSlot, lastSlot, core, sharing)){

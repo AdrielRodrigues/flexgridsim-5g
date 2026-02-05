@@ -136,17 +136,27 @@ public class FifthGenNoMod implements RSA  {
 	}
 	
 	private Path findFog(Flow flow, int cos, int demandInSlots) {
+		
 		Path tempPath;
+		
+		for (int cloud : this.cos) {
+			tempPath = getKShortestPath(graph, flow.getSource(), cloud, cos, demandInSlots, false);
+			if (tempPath == null) {
+				continue;
+			}
+			int delay = 5 * getPhysicalDistance(tempPath.getLinks());
+			
+			if (delay <= 50)
+				return tempPath;
+		}
+		
 		for (int fogNode : this.fogs) {
 			tempPath = getKShortestPath(graph, flow.getSource(), fogNode, cos, demandInSlots, false);
 			if (tempPath == null)
 				continue;
 			int delay = 5 * getPhysicalDistance(tempPath.getLinks());
-			if ((cos == 1) && (delay <= 100)) {
+			if (delay <= 50)
 				return tempPath;
-			} else if ((cos == 2) && (delay <= 250)) {
-				return tempPath;
-			}
 		}
 		return null;
 	}
@@ -161,16 +171,11 @@ public class FifthGenNoMod implements RSA  {
 			}
 			int delay = 5 * getPhysicalDistance(tempPath.getLinks());
 			
-			if ((cos == 1) && (delay <= 100)) {
+			if (delay <= 50) {
 				if (!this.fogs.contains(i)) {
 					this.fogs.add(i);
+					return tempPath;
 				}
-				return tempPath;
-			} else if ((cos == 2) && (delay <= 250)) {
-				if (!this.fogs.contains(i)) {
-					this.fogs.add(i);
-				}
-				return tempPath;
 			}
 		}
 		return null;
@@ -247,7 +252,7 @@ public class FifthGenNoMod implements RSA  {
 	public int getPhysicalDistance(int[] links){
 		if(links!=null&& links.length>0){
 			int physicalDistance = 0;
-			for (int i = 0; i < links.length - 1; i++) {
+			for (int i = 0; i < links.length; i++) {
 				physicalDistance += pt.getLink(links[i]).getDistance();
 			}
 			return physicalDistance;
