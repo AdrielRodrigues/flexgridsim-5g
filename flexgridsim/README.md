@@ -1,16 +1,16 @@
 # Flexgridsim
-##### @author: Adriel Rodrigues
+##### @author: Edson Adriel Freitas Rodrigues, Daniel Macêdo Batista, Helder May Nunes da Silva Oliveira
 
-Flexgridsim is a simulator for <b>Optical Networks</b>.
+This repository contains the FlexgridSim discrete event computer network simulator, which has been enhanced to simulate traffic in the Cloud-Fog Radio Access Network (CF-RAN) model over Space-Division Multiplexing Elastic Optical Networks (SDM-EON). It implements the 5GEON algorithm proposed in the paper <b>Latency-Aware Routing and Multidimensional Optical Resource Allocation for CF-RAN over SDM-EON</b> submitted to the Brazilian Symposium on Computer Networks and Distributed Systems 2026.
 
-This version copes with the RMLSCA problem, and additionally we have implemented the Cloud structure for new scenarios.
+### Running Experiments
 
-R => Routing<br/>
-ML => Modulation Level<br/>
-S => Spectrum<br/>
-C => Core<br/>
-A => Allocation<br/>
+Usage: FlexGridSim.jar xml_file number_of_simulations [-trace] [-verbose] [minload maxload step]
 
-SDM => Space-Division Multiplexing<br/>
-EON => Elastic Optical Networks<br/>
-DC => Data Center<br/>
+The required parameters are:
+xml_file: the XML file containing all the information about the simulation environment. Example xml files are provided.
+number_of_simulations: number of simulations will be ran with a different seed each;
+
+### Plotting
+
+The simulator generates results in .dat files that can be collected in ./flexgridsim/output. The script generates graphs for all output metrics in the simulator.
